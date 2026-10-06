@@ -187,6 +187,8 @@
       justify-content: center;
       cursor: grab;
       touch-action: none;
+      opacity: 1;
+      transition: opacity 0.15s ease, filter 0.15s ease;
     }
 
     .tray-slot:active {
@@ -194,17 +196,19 @@
     }
 
     .tray-slot.disabled {
-      opacity: 0.22;
-      filter: grayscale(1);
+      opacity: 0.25 !important;
+      filter: grayscale(0.85);
       cursor: not-allowed;
+      pointer-events: none;
     }
 
     /* 실제 게임 블록 타일 모양 */
     .block-tile {
-      background: linear-gradient(145deg, var(--theme-from) 0%, var(--theme-to) 100%);
-      border: 1px solid var(--theme-border);
-      box-shadow: inset 1px 1px 1px rgba(255, 255, 255, 0.55), inset -1px -1px 1.5px rgba(0, 0, 0, 0.12);
-      border-radius: 2.5px;
+      background: linear-gradient(145deg, var(--theme-from) 0%, var(--theme-to) 100%) !important;
+      border: 1px solid var(--theme-border) !important;
+      box-shadow: inset 1px 1px 1.5px rgba(255, 255, 255, 0.65), inset -1px -1px 2px rgba(0, 0, 0, 0.18);
+      border-radius: 3px;
+      opacity: 1 !important;
     }
 
     /* 드래그 중인 둥둥 떠다니는 블록 */
@@ -777,14 +781,15 @@
 
       renderTraySlot(index) {
         const slotEl = document.getElementById(`slot-${index}`);
+        if (!slotEl) return;
         slotEl.innerHTML = '';
+        slotEl.style.opacity = '1';
+
         const shape = this.tray[index];
         if (!shape) {
           slotEl.classList.add('disabled');
           return;
         }
-
-        slotEl.classList.remove('disabled');
 
         const matrix = shape.matrix;
         const rows = matrix.length;
@@ -794,8 +799,8 @@
         blockContainer.className = 'grid gap-[2.5px] pointer-events-none transition-transform duration-150';
         blockContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
-        // 실제 게임과 비례하는 시원한 크기 (타일당 21px)
-        const tileSize = 21;
+        // 실제 게임과 비례하는 시원하고 선명한 크기
+        const tileSize = 22;
         blockContainer.style.width = `${cols * tileSize + (cols - 1) * 2.5}px`;
         blockContainer.style.height = `${rows * tileSize + (rows - 1) * 2.5}px`;
 
@@ -817,14 +822,12 @@
       canPlaceAt(matrix, startX, startY) {
         const h = matrix.length;
         const w = matrix[0].length;
+        if (startX < 0 || startX + w > 9 || startY < 0 || startY + h > 9) return false;
 
         for (let r = 0; r < h; r++) {
           for (let c = 0; c < w; c++) {
             if (matrix[r][c] === 1) {
-              const tx = startX + c;
-              const ty = startY + r;
-              if (tx < 0 || tx >= 9 || ty < 0 || ty >= 9) return false;
-              if (this.board[ty][tx] === 1) return false;
+              if (this.board[startY + r][startX + c] === 1) return false;
             }
           }
         }
@@ -832,9 +835,11 @@
       }
 
       canPlaceSomewhere(shape) {
-        if (!shape) return false;
-        for (let y = 0; y < 9; y++) {
-          for (let x = 0; x < 9; x++) {
+        if (!shape || !shape.matrix) return false;
+        const h = shape.matrix.length;
+        const w = shape.matrix[0].length;
+        for (let y = 0; y <= 9 - h; y++) {
+          for (let x = 0; x <= 9 - w; x++) {
             if (this.canPlaceAt(shape.matrix, x, y)) return true;
           }
         }
@@ -854,6 +859,7 @@
             const fits = this.canPlaceSomewhere(shape);
             if (fits) {
               slotEl.classList.remove('disabled');
+              slotEl.style.opacity = '1';
               anyFits = true;
               validCount++;
             } else {
@@ -1000,18 +1006,28 @@
 
           sound.playClear(totalUnits);
 
-          // 테마 색상과 일치하는 셀 폭발 애니메이션
+          // 데이터 상에서는 즉시 0으로 비워 유효성 검사에서 빈 공간으로 즉시 인식되도록 처리
           targetCells.forEach(key => {
             const [x, y] = key.split(',').map(Number);
+            this.board[y][x] = 0;
             const cellEl = document.querySelector(`.grid-cell[data-x="${x}"][data-y="${y}"]`);
             if (cellEl) {
               cellEl.classList.add('clearing');
-              setTimeout(() => {
-                this.board[y][x] = 0;
-                cellEl.classList.remove('clearing', 'occupied');
-              }, 280);
             }
           });
+
+          // 애니메이션 종료 후 DOM 클래스 정리 및 사용 가능 수 재확인
+          setTimeout(() => {
+            targetCells.forEach(key => {
+              const [x, y] = key.split(',').map(Number);
+              const cellEl = document.querySelector(`.grid-cell[data-x="${x}"][data-y="${y}"]`);
+              if (cellEl) {
+                cellEl.classList.remove('clearing', 'occupied');
+              }
+            });
+            this.checkAvailableMoves();
+            this.saveSession();
+          }, 280);
 
           this.showFloatingScore(`+${earned}`);
 
@@ -1327,6 +1343,10 @@
         this.clearPreview();
 
         const slotEl = document.getElementById(`slot-${this.dragSlotIndex}`);
+        if (slotEl) {
+          slotEl.style.opacity = '1';
+        }
+
         if (this.hoverCoords) {
           const ok = this.placeBlock(this.dragSlotIndex, this.hoverCoords.x, this.hoverCoords.y);
           if (!ok && slotEl) slotEl.style.opacity = '1';
