@@ -13,7 +13,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"Segoe UI"', 'Roboto', 'sans-serif'],
           }
         }
       }
@@ -35,15 +35,17 @@
       --board-sector-line: #b6c3d4;
       --cell-white: #ffffff;
       --cell-tint: #edf1f7;
-      --text-score: #2c3340;
-      --text-sub: #8e9aab;
+      --text-score: #1e293b;
+      --text-sub: #94a3b8;
 
-      /* 동적 블록 테마 변수 (스크립트에서 매 판 랜덤 교체) */
-      --theme-from: #54b4eb;
-      --theme-to: #399cd7;
-      --theme-border: #2c84bc;
-      --theme-glow: rgba(57, 156, 215, 0.45);
-      --theme-ghost: rgba(57, 156, 215, 0.28);
+      /* 원본 특유의 세련된 프리미엄 블록 쉐이딩 변수 */
+      --block-base: #4ca5db;
+      --block-top: #5cbcf7;
+      --block-bottom: #3b90c3;
+      --block-border: rgba(30, 95, 138, 0.45);
+      --block-shadow: rgba(43, 116, 161, 0.28);
+      --theme-ghost: rgba(76, 165, 219, 0.35);
+      --theme-glow: rgba(76, 165, 219, 0.6);
     }
 
     html.dark {
@@ -65,12 +67,12 @@
       touch-action: none;
     }
 
-    /* 실제 게임과 1:1 일치하는 완벽한 9x9 일체형 보드 프레임 */
+    /* 1:1 완벽 일치 일체형 스도쿠 보드 */
     .board-frame {
       background-color: var(--board-border);
       padding: 2.5px;
-      border-radius: 8px;
-      box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.06);
+      border-radius: 10px;
+      box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.08);
       width: 100%;
       aspect-ratio: 1 / 1;
       max-width: 380px;
@@ -85,22 +87,22 @@
       grid-template-rows: repeat(9, 1fr);
       gap: 1.5px;
       background-color: var(--board-inner-line);
-      border-radius: 6px;
+      border-radius: 8px;
       overflow: hidden;
     }
 
-    /* 셀 스타일링 - 틈새 없는 일체형 스도쿠 그리드 */
+    /* 빈 그리드 셀 */
     .grid-cell {
       background-color: var(--cell-white);
       position: relative;
-      transition: background 0.12s ease, filter 0.15s ease;
+      transition: background-color 0.12s ease;
     }
 
     .grid-cell.tint-zone {
       background-color: var(--cell-tint);
     }
 
-    /* 3x3 스도쿠 구역 분할선 두께 강조 */
+    /* 3x3 스도쿠 구역 분할선 두께 */
     .grid-cell.sector-border-r {
       border-right: 2px solid var(--board-sector-line) !important;
     }
@@ -108,50 +110,60 @@
       border-bottom: 2px solid var(--board-sector-line) !important;
     }
 
-    /* 배치된 블록 타일 (실제 게임의 입체 베벨 & 이음새 질감) */
+    /* =========================================================
+       ★ 원본 Blockudoku 100% 동일 프리미엄 블록 타일 텍스처
+       ========================================================= */
+    .block-tile,
     .grid-cell.occupied {
-      background: linear-gradient(145deg, var(--theme-from) 0%, var(--theme-to) 100%) !important;
-      border: 1px solid var(--theme-border) !important;
-      box-shadow: inset 1px 1px 1.5px rgba(255, 255, 255, 0.6), inset -1px -1px 2px rgba(0, 0, 0, 0.15);
-      border-radius: 2px;
+      background: linear-gradient(180deg, var(--block-top) 0%, var(--block-base) 45%, var(--block-bottom) 100%) !important;
+      border: 1px solid var(--block-border) !important;
+      border-radius: 4px;
+      /* 상단 하이라이트 엣지 + 아래쪽 부드러운 뎁스 그림자 (촌스러운 사선 엠보싱 완전 제거) */
+      box-shadow: 
+        inset 0 1px 0 rgba(255, 255, 255, 0.65),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+        0 1.5px 3px var(--block-shadow) !important;
+      position: relative;
       z-index: 2;
     }
 
-    /* 반투명 고스트 프리뷰 */
+    /* 고스트 프리뷰 (배치 가이드) */
     .grid-cell.ghost-hover {
       background: var(--theme-ghost) !important;
-      outline: 2px dashed var(--theme-border);
+      outline: 2px dashed var(--block-base);
       outline-offset: -2px;
+      border-radius: 4px;
       z-index: 4;
     }
 
-    /* 지워질 라인 예측 하이라이트 (Anticipation) */
+    /* 라인 완성 예측 하이라이트 */
     .grid-cell.anticipate-clear {
       animation: pulse-anticipate 0.35s infinite alternate ease-in-out;
-      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
-      border-color: #d97706 !important;
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+      background: linear-gradient(180deg, #fcd34d 0%, #f59e0b 60%, #d97706 100%) !important;
+      border: 1px solid rgba(180, 83, 9, 0.6) !important;
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      border-radius: 4px;
       z-index: 6;
     }
 
     @keyframes pulse-anticipate {
-      0% { opacity: 0.75; transform: scale(0.97); }
-      100% { opacity: 1; transform: scale(1.02); }
+      0% { transform: scale(0.97); filter: brightness(1); }
+      100% { transform: scale(1.02); filter: brightness(1.15); }
     }
 
-    /* 타일 제거 폭발 이펙트 */
+    /* 타일 제거 이펙트 */
     .grid-cell.clearing {
-      animation: burst-clear 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+      animation: burst-clear 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
       z-index: 10;
     }
 
     @keyframes burst-clear {
-      0% { transform: scale(1); filter: brightness(1.8); }
-      40% { transform: scale(1.15); opacity: 0.9; box-shadow: 0 0 15px var(--theme-glow); }
-      100% { transform: scale(0.2); opacity: 0; }
+      0% { transform: scale(1); filter: brightness(1.6); }
+      45% { transform: scale(1.12); opacity: 0.9; box-shadow: 0 0 16px var(--theme-glow); }
+      100% { transform: scale(0.1); opacity: 0; }
     }
 
-    /* 올 클리어 파도타기 애니메이션 */
+    /* ALL CLEAR 파도타기 */
     .grid-cell.wave-tile {
       animation: wave-cascade 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       z-index: 12;
@@ -160,15 +172,16 @@
     @keyframes wave-cascade {
       0% { transform: translateY(0); }
       35% {
-        transform: translateY(-5px);
-        background: linear-gradient(145deg, var(--theme-from) 0%, var(--theme-to) 100%) !important;
-        box-shadow: 0 6px 14px var(--theme-glow);
-        filter: brightness(1.3);
+        transform: translateY(-6px);
+        background: linear-gradient(180deg, var(--block-top) 0%, var(--block-bottom) 100%) !important;
+        box-shadow: 0 8px 16px var(--theme-glow);
+        filter: brightness(1.2);
+        border-radius: 4px;
       }
       100% { transform: translateY(0); }
     }
 
-    /* 하단 트레이 (슬롯 상자 없는 투명 플로팅 디자인) */
+    /* 하단 트레이 영역 (원본처럼 큼직하고 묵직한 크기감 부여) */
     .tray-wrapper {
       width: 100%;
       max-width: 380px;
@@ -176,19 +189,18 @@
       grid-template-columns: repeat(3, 1fr);
       align-items: center;
       justify-items: center;
-      min-height: 120px;
+      height: 125px;
     }
 
     .tray-slot {
       width: 100%;
-      height: 110px;
+      height: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: grab;
       touch-action: none;
-      opacity: 1;
-      transition: opacity 0.15s ease, filter 0.15s ease;
+      transition: transform 0.15s ease, opacity 0.15s ease;
     }
 
     .tray-slot:active {
@@ -196,31 +208,22 @@
     }
 
     .tray-slot.disabled {
-      opacity: 0.25 !important;
-      filter: grayscale(0.85);
+      opacity: 0.22 !important;
+      filter: grayscale(0.9);
       cursor: not-allowed;
       pointer-events: none;
     }
 
-    /* 실제 게임 블록 타일 모양 */
-    .block-tile {
-      background: linear-gradient(145deg, var(--theme-from) 0%, var(--theme-to) 100%) !important;
-      border: 1px solid var(--theme-border) !important;
-      box-shadow: inset 1px 1px 1.5px rgba(255, 255, 255, 0.65), inset -1px -1px 2px rgba(0, 0, 0, 0.18);
-      border-radius: 3px;
-      opacity: 1 !important;
-    }
-
-    /* 드래그 중인 둥둥 떠다니는 블록 */
+    /* 드래그 중인 플로팅 프록시 */
     #drag-proxy {
       position: fixed;
       pointer-events: none;
       z-index: 9999;
       display: none;
-      filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.25));
+      filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.28));
     }
 
-    /* 신중하게 움직이세요 알림 */
+    /* 신중하게 움직이세요 토스트 */
     .caution-pill {
       position: absolute;
       top: 10px;
@@ -236,7 +239,7 @@
       font-size: 12px;
       font-weight: 800;
       letter-spacing: -0.01em;
-      box-shadow: 0 8px 16px rgba(234, 88, 12, 0.35);
+      box-shadow: 0 8px 18px rgba(234, 88, 12, 0.4);
       transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
@@ -245,7 +248,7 @@
       transform: translate(-50%, 0);
     }
 
-    /* ALL CLEAR 축하 배너 */
+    /* ALL CLEAR 배너 */
     .all-clear-banner {
       position: absolute;
       top: 50%;
@@ -275,7 +278,7 @@
       100% { opacity: 0; transform: translate(-50%, -60%) scale(0.95); }
     }
 
-    /* 점수 팝업 애니메이션 */
+    /* 플로팅 점수 팝업 */
     .score-popup {
       position: absolute;
       pointer-events: none;
@@ -293,12 +296,11 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between max-w-md mx-auto px-4 py-3 select-none">
 
-  <!-- 미니 헤더 툴바 (사운드, 테마, 재시작) -->
+  <!-- 상단 미니 툴바 -->
   <div class="w-full flex items-center justify-between pt-1">
     <div class="flex items-center gap-2">
-      <!-- 테마 컬러 인디케이터 배지 -->
       <div id="theme-color-indicator" class="w-3.5 h-3.5 rounded-full shadow-inner border border-white/60"></div>
-      <span id="theme-color-name" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Classic Sky</span>
+      <span id="theme-color-name" class="text-[11px] font-extrabold uppercase tracking-wider text-slate-400">Sky Blue</span>
     </div>
     <div class="flex items-center gap-3 text-slate-400">
       <button id="btn-sound" class="p-1 hover:text-slate-600 dark:hover:text-slate-200 transition" aria-label="사운드 토글">
@@ -313,25 +315,23 @@
     </div>
   </div>
 
-  <!-- 실제 게임과 똑같은 심플 & 클린 스코어보드 -->
+  <!-- 원본 Blockudoku 오리지널 스코어 헤더 -->
   <header class="w-full flex flex-col items-center mt-1 mb-2">
-    <!-- 거대한 메인 점수 (실제 앱 스타일) -->
-    <div id="score-display" class="text-6xl font-normal tracking-tight tabular-nums py-1 leading-none">
+    <div id="score-display" class="text-6xl font-light tracking-tight tabular-nums py-1 leading-none text-slate-800 dark:text-slate-100">
       0
     </div>
 
-    <!-- 좌/우 서브 기록 (목표 / 최고 기록) -->
     <div class="w-full flex items-center justify-between px-2 mt-1">
       <div class="flex flex-col items-start">
-        <span class="text-xs font-medium text-slate-400">목표</span>
-        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold text-sm">
+        <span class="text-xs font-semibold text-slate-400">목표</span>
+        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold text-sm">
           <i class="fa-solid fa-circle-check text-sky-500 text-xs"></i>
           <span id="target-score">1000</span>
         </div>
       </div>
       <div class="flex flex-col items-end">
-        <span class="text-xs font-medium text-slate-400">최고 기록</span>
-        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-200 font-bold text-sm">
+        <span class="text-xs font-semibold text-slate-400">최고 기록</span>
+        <div class="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold text-sm">
           <i class="fa-solid fa-trophy text-amber-500 text-xs"></i>
           <span id="best-score">0</span>
         </div>
@@ -339,7 +339,7 @@
     </div>
   </header>
 
-  <!-- 메인 보드 그리드 (실제 게임 규격 모사) -->
+  <!-- 메인 보드 그리드 (실제 게임 규격 1:1) -->
   <main class="w-full flex items-center justify-center my-auto relative">
     <div id="board-container" class="board-frame">
       <div id="board-grid" class="board-table">
@@ -350,12 +350,12 @@
         <i class="fa-solid fa-triangle-exclamation mr-1 text-xs"></i>
         <span>신중하게 움직이세요!</span>
       </div>
-      <!-- 피드백 / 폭발 애니메이션 레이어 -->
+      <!-- 피드백 레이어 -->
       <div id="feedback-layer" class="absolute inset-0 pointer-events-none overflow-hidden"></div>
     </div>
   </main>
 
-  <!-- 하단 트레이 (슬롯 네모 박스를 없앤 깔끔한 오리지널 스타일) -->
+  <!-- 하단 트레이 (충분한 크기의 시원한 블록 렌더링) -->
   <footer class="w-full flex justify-center pb-4">
     <div class="tray-wrapper">
       <div class="tray-slot" id="slot-0" data-slot="0"></div>
@@ -392,56 +392,69 @@
 
   <script>
     /* ==========================================================
-       1. 다채로운 블록 테마 팔레트 (매 게임마다 무작위 변경)
+       1. 정통 모바일 퍼즐 컬러 테마 팔레트
+       (채도와 명도를 완벽하게 조율하여 싼티를 없앤 고급 매트 컬러)
        ========================================================== */
     const COLOR_PALETTES = [
       {
-        name: 'Classic Sky',
-        from: '#54b4eb',
-        to: '#399cd7',
-        border: '#2c84bc',
-        glow: 'rgba(57, 156, 215, 0.55)',
-        ghost: 'rgba(57, 156, 215, 0.32)'
+        name: 'Sky Blue',
+        base: '#4ca5db',
+        top: '#5cbcf7',
+        bottom: '#3b90c3',
+        border: 'rgba(30, 95, 138, 0.45)',
+        shadow: 'rgba(43, 116, 161, 0.3)',
+        ghost: 'rgba(76, 165, 219, 0.35)',
+        glow: 'rgba(76, 165, 219, 0.65)'
       },
       {
-        name: 'Emerald Mint',
-        from: '#34d399',
-        to: '#059669',
-        border: '#047857',
-        glow: 'rgba(16, 185, 129, 0.55)',
-        ghost: 'rgba(16, 185, 129, 0.32)'
+        name: 'Emerald Teal',
+        base: '#27b587',
+        top: '#3cd4a2',
+        bottom: '#1c946d',
+        border: 'rgba(18, 107, 78, 0.45)',
+        shadow: 'rgba(28, 148, 109, 0.3)',
+        ghost: 'rgba(39, 181, 135, 0.35)',
+        glow: 'rgba(39, 181, 135, 0.65)'
       },
       {
-        name: 'Amber Coral',
-        from: '#fb923c',
-        to: '#ea580c',
-        border: '#c2410c',
-        glow: 'rgba(234, 88, 12, 0.55)',
-        ghost: 'rgba(234, 88, 12, 0.32)'
+        name: 'Sunset Coral',
+        base: '#fa7a48',
+        top: '#ff9266',
+        bottom: '#dc5e2c',
+        border: 'rgba(168, 57, 13, 0.45)',
+        shadow: 'rgba(220, 94, 44, 0.3)',
+        ghost: 'rgba(250, 122, 72, 0.35)',
+        glow: 'rgba(250, 122, 72, 0.65)'
       },
       {
-        name: 'Amethyst Violet',
-        from: '#a78bfa',
-        to: '#7c3aed',
-        border: '#6d28d9',
-        glow: 'rgba(124, 58, 237, 0.55)',
-        ghost: 'rgba(124, 58, 237, 0.32)'
+        name: 'Royal Violet',
+        base: '#8c68ec',
+        top: '#a183fa',
+        bottom: '#734ed1',
+        border: 'rgba(84, 49, 171, 0.45)',
+        shadow: 'rgba(115, 78, 209, 0.3)',
+        ghost: 'rgba(140, 104, 236, 0.35)',
+        glow: 'rgba(140, 104, 236, 0.65)'
       },
       {
-        name: 'Rose Berry',
-        from: '#f472b6',
-        to: '#db2777',
-        border: '#be185d',
-        glow: 'rgba(219, 39, 119, 0.55)',
-        ghost: 'rgba(219, 39, 119, 0.32)'
+        name: 'Berry Magenta',
+        base: '#e3518a',
+        top: '#f76ca2',
+        bottom: '#c2376f',
+        border: 'rgba(148, 30, 77, 0.45)',
+        shadow: 'rgba(194, 55, 111, 0.3)',
+        ghost: 'rgba(227, 81, 138, 0.35)',
+        glow: 'rgba(227, 81, 138, 0.65)'
       },
       {
-        name: 'Electric Cyan',
-        from: '#22d3ee',
-        to: '#0891b2',
-        border: '#0e7490',
-        glow: 'rgba(8, 145, 178, 0.55)',
-        ghost: 'rgba(8, 145, 178, 0.32)'
+        name: 'Deep Cyan',
+        base: '#19abbf',
+        top: '#34c7dc',
+        bottom: '#0e8899',
+        border: 'rgba(9, 101, 115, 0.45)',
+        shadow: 'rgba(14, 136, 153, 0.3)',
+        ghost: 'rgba(25, 171, 191, 0.35)',
+        glow: 'rgba(25, 171, 191, 0.65)'
       }
     ];
 
@@ -516,7 +529,7 @@
     const sound = new SoundEngine();
 
     /* ==========================================================
-       3. 정통 블록 셰이프 (3x3 블록 제외 & 티어 분류 적용)
+       3. 정통 블록 셰이프 (3x3 블록 완전 제외)
        ========================================================== */
     const BLOCK_SHAPES = [
       // Tier 1: 안전/소형 블록 (1~3칸)
@@ -567,20 +580,18 @@
         this.dragSlotIndex = null;
         this.dragShape = null;
         this.hoverCoords = null;
-        this.touchOffsetY = 75; // 모바일 손가락 가림 방지 오프셋
+        this.touchOffsetY = 75; // 손가락 가림 방지 오프셋
 
         this.initThemeMode();
         this.initDOM();
         this.bindEvents();
 
-        // 저장된 판이 있으면 복원, 없으면 새 게임
         if (!this.loadSession()) {
           this.startNewGame();
         }
       }
 
       initThemeMode() {
-        // 기본 시작은 라이트 모드
         const saved = localStorage.getItem('blockudoku_theme_mode');
         if (saved === 'dark') {
           document.documentElement.classList.add('dark');
@@ -594,17 +605,22 @@
       applyRandomPalette() {
         const randomIndex = Math.floor(Math.random() * COLOR_PALETTES.length);
         this.currentPalette = COLOR_PALETTES[randomIndex];
+        this.updateCSSVariables();
+      }
 
+      updateCSSVariables() {
         const root = document.documentElement;
-        root.style.setProperty('--theme-from', this.currentPalette.from);
-        root.style.setProperty('--theme-to', this.currentPalette.to);
-        root.style.setProperty('--theme-border', this.currentPalette.border);
-        root.style.setProperty('--theme-glow', this.currentPalette.glow);
+        root.style.setProperty('--block-base', this.currentPalette.base);
+        root.style.setProperty('--block-top', this.currentPalette.top);
+        root.style.setProperty('--block-bottom', this.currentPalette.bottom);
+        root.style.setProperty('--block-border', this.currentPalette.border);
+        root.style.setProperty('--block-shadow', this.currentPalette.shadow);
         root.style.setProperty('--theme-ghost', this.currentPalette.ghost);
+        root.style.setProperty('--theme-glow', this.currentPalette.glow);
 
         const badge = document.getElementById('theme-color-indicator');
         const badgeName = document.getElementById('theme-color-name');
-        if (badge) badge.style.backgroundColor = this.currentPalette.to;
+        if (badge) badge.style.backgroundColor = this.currentPalette.base;
         if (badgeName) badgeName.textContent = this.currentPalette.name;
       }
 
@@ -619,14 +635,12 @@
             cell.dataset.x = x;
             cell.dataset.y = y;
 
-            // 스도쿠 3x3 섹터 체커보드 음영
             const secX = Math.floor(x / 3);
             const secY = Math.floor(y / 3);
             if ((secX + secY) % 2 === 1) {
               cell.classList.add('tint-zone');
             }
 
-            // 3x3 경계선 굵게
             if (x === 2 || x === 5) cell.classList.add('sector-border-r');
             if (y === 2 || y === 5) cell.classList.add('sector-border-b');
 
@@ -643,9 +657,7 @@
         this.streak = 0;
         this.isGameOver = false;
 
-        // 매 게임마다 새로운 블록 컬러 테마 적용
         this.applyRandomPalette();
-
         this.renderBoard();
         this.spawnTray();
         this.updateScoreView();
@@ -686,17 +698,7 @@
 
             const matchedPalette = COLOR_PALETTES.find(p => p.name === data.paletteName) || COLOR_PALETTES[0];
             this.currentPalette = matchedPalette;
-            const root = document.documentElement;
-            root.style.setProperty('--theme-from', this.currentPalette.from);
-            root.style.setProperty('--theme-to', this.currentPalette.to);
-            root.style.setProperty('--theme-border', this.currentPalette.border);
-            root.style.setProperty('--theme-glow', this.currentPalette.glow);
-            root.style.setProperty('--theme-ghost', this.currentPalette.ghost);
-
-            const badge = document.getElementById('theme-color-indicator');
-            const badgeName = document.getElementById('theme-color-name');
-            if (badge) badge.style.backgroundColor = this.currentPalette.to;
-            if (badgeName) badgeName.textContent = this.currentPalette.name;
+            this.updateCSSVariables();
 
             this.renderBoard();
             this.renderTray();
@@ -709,18 +711,13 @@
       }
 
       /* ==========================================================
-         원본 Blockudoku 100% 동일 구현 블록 스폰 알고리즘:
-         1) 점수 기반 동적 난이도 (Score-based Weight)
-         2) 대형 블록 중복 억제 (Max 1 Tier-3 per tray)
-         3) 보드 위기 시 구원 DDA (Adaptive Rescue)
-         4) 최소 1개 배치 가능 보장 (Guarantee Fit - 억까 즉사 방지)
+         Blockudoku 원본 100% 동일 스폰 메커니즘
          ========================================================== */
       spawnTray() {
         const tier1 = BLOCK_SHAPES.filter(s => s.tier === 1);
         const tier2 = BLOCK_SHAPES.filter(s => s.tier === 2);
         const tier3 = BLOCK_SHAPES.filter(s => s.tier === 3);
 
-        // 1. 보드 점유율(Occupancy Ratio) 계산
         let occupiedCount = 0;
         for (let y = 0; y < 9; y++) {
           for (let x = 0; x < 9; x++) {
@@ -729,7 +726,6 @@
         }
         const occRatio = occupiedCount / 81;
 
-        // 2. 점수 구간별 기본 가중치
         let t1Weight = 0.35;
         let t2Weight = 0.45;
         let t3Weight = 0.20;
@@ -745,8 +741,7 @@
           t3Weight = 0.35;
         }
 
-        // 3. 위기 구원 알고리즘 (Adaptive Rescue):
-        // 보드가 65% 이상 채워지면 Tier 3 출현율을 급격히 낮추고, 틈을 메울 소형(Tier 1) 비중을 65%로 급증시켜 역전 기회 제공
+        // 위기 구원 DDA: 점유율 65% 이상 시 소형 블록 65% 투입
         if (occRatio >= 0.65) {
           t1Weight = 0.65;
           t2Weight = 0.30;
@@ -760,7 +755,6 @@
         let tier3Picked = 0;
 
         for (let i = 0; i < 3; i++) {
-          // 대형 블록(Tier 3)은 1세트(3개)에 최대 1개까지만 스폰되도록 엄격히 제한
           const effectiveT3Weight = tier3Picked >= 1 ? 0 : t3Weight;
           const totalWeight = t1Weight + t2Weight + effectiveT3Weight;
           const rand = Math.random() * totalWeight;
@@ -778,18 +772,14 @@
           newTray.push(picked);
         }
 
-        // 4. 최소 1개 생존 보장 규칙 (Guarantee Fit):
-        // 3개 블록 모두 현재 보드에 둘 자리가 전혀 없는 '운빨 즉사' 상황이면,
-        // 마지막 슬롯 블록을 현재 보드에 유효한 블록으로 교체하여 게임 연속성을 보장
+        // 최소 1개 배치 보장
         const hasValidMove = newTray.some(shape => this.canPlaceSomewhere(shape));
         if (!hasValidMove) {
           const fitList = BLOCK_SHAPES.filter(shape => this.canPlaceSomewhere(shape));
           if (fitList.length > 0) {
-            // 위기 상황이므로 가급적 Tier 1 소형 블록을 우선 구조 조각으로 투입
             const t1Fit = fitList.filter(s => s.tier === 1);
             const rescuePool = t1Fit.length > 0 ? t1Fit : fitList;
-            const rescueShape = rescuePool[Math.floor(Math.random() * rescuePool.length)];
-            newTray[2] = rescueShape;
+            newTray[2] = rescuePool[Math.floor(Math.random() * rescuePool.length)];
           }
         }
 
@@ -819,6 +809,9 @@
         }
       }
 
+      /* ==========================================================
+         ★ 원본과 동일하게 큼직하고 묵직한 하단 블록 렌더링
+         ========================================================== */
       renderTraySlot(index) {
         const slotEl = document.getElementById(`slot-${index}`);
         if (!slotEl) return;
@@ -836,12 +829,17 @@
         const cols = matrix[0].length;
 
         const blockContainer = document.createElement('div');
-        blockContainer.className = 'grid gap-[2.5px] pointer-events-none transition-transform duration-150';
+        blockContainer.className = 'grid pointer-events-none transition-transform duration-150';
         blockContainer.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+        
+        // 타일 간 얇은 홈(Seam): 1.5px
+        const gap = 1.5;
+        blockContainer.style.gap = `${gap}px`;
 
-        const tileSize = 22;
-        blockContainer.style.width = `${cols * tileSize + (cols - 1) * 2.5}px`;
-        blockContainer.style.height = `${rows * tileSize + (rows - 1) * 2.5}px`;
+        // 기존 22px ➔ 원본 스크린샷과 동일한 30px로 대폭 확대하여 시원시원하고 묵직하게 표시
+        const tileSize = 30;
+        blockContainer.style.width = `${cols * tileSize + (cols - 1) * gap}px`;
+        blockContainer.style.height = `${rows * tileSize + (rows - 1) * gap}px`;
 
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
@@ -849,7 +847,7 @@
             if (matrix[r][c] === 1) {
               tile.className = 'block-tile w-full h-full';
             } else {
-              tile.className = 'w-full h-full opacity-0';
+              tile.className = 'w-full h-full opacity-0 pointer-events-none';
             }
             blockContainer.appendChild(tile);
           }
@@ -912,7 +910,6 @@
           return;
         }
 
-        // 보드 위기 감지 ("신중하게 움직이세요!")
         let occ = 0;
         for (let y = 0; y < 9; y++) {
           for (let x = 0; x < 9; x++) if (this.board[y][x] === 1) occ++;
@@ -980,7 +977,6 @@
         const boxes = [];
         const targetCells = new Set();
 
-        // 1. 행 검사
         for (let y = 0; y < 9; y++) {
           if (this.board[y].every(v => v === 1)) {
             rows.push(y);
@@ -988,7 +984,6 @@
           }
         }
 
-        // 2. 열 검사
         for (let x = 0; x < 9; x++) {
           let full = true;
           for (let y = 0; y < 9; y++) {
@@ -1000,7 +995,6 @@
           }
         }
 
-        // 3. 3x3 박스 검사
         for (let b = 0; b < 9; b++) {
           const sx = (b % 3) * 3;
           const sy = Math.floor(b / 3) * 3;
@@ -1026,7 +1020,6 @@
         if (totalUnits > 0) {
           this.streak++;
 
-          // 콤보 점수 배점
           const baseUnit = 10;
           let comboMultiplier = 1.0;
           if (totalUnits === 2) comboMultiplier = 1.5;
@@ -1043,7 +1036,6 @@
 
           sound.playClear(totalUnits);
 
-          // 데이터 상에서는 즉시 0으로 비워 유효성 검사에서 빈 공간으로 즉시 인식되도록 처리
           targetCells.forEach(key => {
             const [x, y] = key.split(',').map(Number);
             this.board[y][x] = 0;
@@ -1053,7 +1045,6 @@
             }
           });
 
-          // 애니메이션 종료 후 DOM 클래스 정리 및 사용 가능 수 재확인
           setTimeout(() => {
             targetCells.forEach(key => {
               const [x, y] = key.split(',').map(Number);
@@ -1068,7 +1059,6 @@
 
           this.showFloatingScore(`+${earned}`);
 
-          // 올 클리어 체크
           setTimeout(() => {
             const allEmpty = this.board.every(r => r.every(v => v === 0));
             if (allEmpty) {
@@ -1086,7 +1076,6 @@
         this.addScore(100);
         sound.playAllClear();
 
-        // 현재 블록 테마 색상으로 물결치는 파도타기
         for (let y = 0; y < 9; y++) {
           for (let x = 0; x < 9; x++) {
             const cellEl = document.querySelector(`.grid-cell[data-x="${x}"][data-y="${y}"]`);
@@ -1099,7 +1088,6 @@
           }
         }
 
-        // 깔끔한 ALL CLEAR +100 배너
         const feedback = document.getElementById('feedback-layer');
         const banner = document.createElement('div');
         banner.className = 'all-clear-banner';
@@ -1121,7 +1109,7 @@
         pop.className = 'score-popup text-xl';
         pop.style.left = '50%';
         pop.style.top = '45%';
-        pop.style.color = isDanger ? '#f43f5e' : this.currentPalette.to;
+        pop.style.color = isDanger ? '#f43f5e' : this.currentPalette.base;
         pop.textContent = text;
         feedback.appendChild(pop);
         setTimeout(() => pop.remove(), 850);
@@ -1156,7 +1144,6 @@
       }
 
       bindEvents() {
-        // 사운드 토글
         document.getElementById('btn-sound').addEventListener('click', () => {
           sound.enabled = !sound.enabled;
           document.getElementById('icon-sound').className = sound.enabled
@@ -1164,7 +1151,6 @@
             : 'fa-solid fa-volume-xmark text-sm text-slate-400';
         });
 
-        // 다크 / 라이트 모드 토글
         document.getElementById('btn-theme').addEventListener('click', () => {
           const isDark = document.documentElement.classList.toggle('dark');
           localStorage.setItem('blockudoku_theme_mode', isDark ? 'dark' : 'light');
@@ -1173,17 +1159,14 @@
             : 'fa-solid fa-sun text-sm text-amber-500';
         });
 
-        // 새 게임 리셋
         document.getElementById('btn-restart').addEventListener('click', () => {
           if (confirm('새 판을 시작하시겠습니까? (새로운 블록 테마가 적용됩니다)')) {
             this.startNewGame();
           }
         });
 
-        // 게임 오버 모달 버튼
         document.getElementById('btn-newgame').addEventListener('click', () => this.startNewGame());
 
-        // 터치 & 마우스 드래그 핸들링
         const trayFooter = document.querySelector('footer');
         trayFooter.addEventListener('pointerdown', (e) => this.onDragStart(e));
         window.addEventListener('pointermove', (e) => this.onDragMove(e), { passive: false });
@@ -1207,7 +1190,6 @@
 
         sound.playGrab();
 
-        // 보드 셀 크기에 맞춘 드래그 프록시 생성
         const boardEl = document.getElementById('board-grid');
         const boardCellSize = boardEl.clientWidth / 9;
         this.prepareDragProxy(shape, boardCellSize);
@@ -1222,7 +1204,7 @@
         const proxy = document.getElementById('drag-proxy');
         const h = shape.matrix.length;
         const w = shape.matrix[0].length;
-        const gap = 2;
+        const gap = 1.5;
 
         proxy.innerHTML = '';
         proxy.style.display = 'grid';
@@ -1240,7 +1222,7 @@
             if (shape.matrix[r][c] === 1) {
               cell.className = 'block-tile w-full h-full';
             } else {
-              cell.className = 'w-full h-full opacity-0';
+              cell.className = 'w-full h-full opacity-0 pointer-events-none';
             }
             proxy.appendChild(cell);
           }
@@ -1290,7 +1272,6 @@
         if (this.canPlaceAt(shape.matrix, gx, gy)) {
           this.hoverCoords = { x: gx, y: gy };
 
-          // 고스트 프리뷰 표시
           for (let r = 0; r < sh; r++) {
             for (let c = 0; c < sw; c++) {
               if (shape.matrix[r][c] === 1) {
@@ -1300,7 +1281,6 @@
             }
           }
 
-          // 라인 완성 사전 예측(Anticipation) 표시
           this.highlightAnticipation(shape.matrix, gx, gy);
         } else {
           this.hoverCoords = null;
@@ -1386,7 +1366,6 @@
       }
     }
 
-    // 인스턴스 전역 생성
     window.addEventListener('DOMContentLoaded', () => {
       window.gameInstance = new Blockudoku();
     });
