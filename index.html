@@ -382,13 +382,9 @@
       </div>
 
       <div class="flex flex-col gap-2">
-        <button id="btn-revive" class="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-extrabold rounded-xl shadow-md text-xs flex items-center justify-center gap-1.5 active:scale-95 transition">
-          <i class="fa-solid fa-heart-pulse"></i>
-          <span>한 수 물리고 이어하기</span>
-          <span id="revive-cost-tag" class="bg-black/20 px-2 py-0.5 rounded-full font-bold ml-1">-50 P</span>
-        </button>
-        <button id="btn-newgame" class="w-full py-2.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs active:scale-95 transition">
-          새 게임 시작
+        <button id="btn-newgame" class="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-extrabold rounded-xl text-sm shadow-md active:scale-95 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span>새 게임 시작</span>
         </button>
       </div>
     </div>
@@ -520,34 +516,38 @@
     const sound = new SoundEngine();
 
     /* ==========================================================
-       3. 정통 테트로미노 & 펜토미노 블록 셰이프
+       3. 정통 블록 셰이프 (3x3 블록 완전 제거 & 티어 분류 적용)
        ========================================================== */
     const BLOCK_SHAPES = [
-      { id: '1x1', matrix: [[1]] },
-      { id: '1x2', matrix: [[1, 1]] },
-      { id: '2x1', matrix: [[1], [1]] },
-      { id: '1x3', matrix: [[1, 1, 1]] },
-      { id: '3x1', matrix: [[1], [1], [1]] },
-      { id: '1x4', matrix: [[1, 1, 1, 1]] },
-      { id: '4x1', matrix: [[1], [1], [1], [1]] },
-      { id: '1x5', matrix: [[1, 1, 1, 1, 1]] },
-      { id: '5x1', matrix: [[1], [1], [1], [1], [1]] },
-      { id: '2x2', matrix: [[1, 1], [1, 1]] },
-      { id: '3x3', matrix: [[1, 1, 1], [1, 1, 1], [1, 1, 1]] },
-      { id: 'L-2-1', matrix: [[1, 0], [1, 1]] },
-      { id: 'L-2-2', matrix: [[0, 1], [1, 1]] },
-      { id: 'L-2-3', matrix: [[1, 1], [1, 0]] },
-      { id: 'L-2-4', matrix: [[1, 1], [0, 1]] },
-      { id: 'L-3-1', matrix: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] },
-      { id: 'L-3-2', matrix: [[0, 0, 1], [0, 0, 1], [1, 1, 1]] },
-      { id: 'L-3-3', matrix: [[1, 1, 1], [1, 0, 0], [1, 0, 0]] },
-      { id: 'L-3-4', matrix: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] },
-      { id: 'T-4-1', matrix: [[1, 1, 1], [0, 1, 0]] },
-      { id: 'T-4-2', matrix: [[0, 1, 0], [1, 1, 1]] },
-      { id: 'T-4-3', matrix: [[1, 0], [1, 1], [1, 0]] },
-      { id: 'T-4-4', matrix: [[0, 1], [1, 1], [0, 1]] },
-      { id: 'Z-4-1', matrix: [[1, 1, 0], [0, 1, 1]] },
-      { id: 'S-4-1', matrix: [[0, 1, 1], [1, 1, 0]] }
+      // Tier 1: 안전/소형 블록 (1~3칸)
+      { id: '1x1', tier: 1, matrix: [[1]] },
+      { id: '1x2', tier: 1, matrix: [[1, 1]] },
+      { id: '2x1', tier: 1, matrix: [[1], [1]] },
+      { id: '1x3', tier: 1, matrix: [[1, 1, 1]] },
+      { id: '3x1', tier: 1, matrix: [[1], [1], [1]] },
+      { id: 'L-2-1', tier: 1, matrix: [[1, 0], [1, 1]] },
+      { id: 'L-2-2', tier: 1, matrix: [[0, 1], [1, 1]] },
+      { id: 'L-2-3', tier: 1, matrix: [[1, 1], [1, 0]] },
+      { id: 'L-2-4', tier: 1, matrix: [[1, 1], [0, 1]] },
+
+      // Tier 2: 일반 테트로미노 (4칸)
+      { id: '1x4', tier: 2, matrix: [[1, 1, 1, 1]] },
+      { id: '4x1', tier: 2, matrix: [[1], [1], [1], [1]] },
+      { id: '2x2', tier: 2, matrix: [[1, 1], [1, 1]] },
+      { id: 'T-4-1', tier: 2, matrix: [[1, 1, 1], [0, 1, 0]] },
+      { id: 'T-4-2', tier: 2, matrix: [[0, 1, 0], [1, 1, 1]] },
+      { id: 'T-4-3', tier: 2, matrix: [[1, 0], [1, 1], [1, 0]] },
+      { id: 'T-4-4', tier: 2, matrix: [[0, 1], [1, 1], [0, 1]] },
+      { id: 'Z-4-1', tier: 2, matrix: [[1, 1, 0], [0, 1, 1]] },
+      { id: 'S-4-1', tier: 2, matrix: [[0, 1, 1], [1, 1, 0]] },
+
+      // Tier 3: 고난도 펜토미노 & 대형 코너 (5칸 이상, 난이도 상향용)
+      { id: '1x5', tier: 3, matrix: [[1, 1, 1, 1, 1]] },
+      { id: '5x1', tier: 3, matrix: [[1], [1], [1], [1], [1]] },
+      { id: 'L-3-1', tier: 3, matrix: [[1, 0, 0], [1, 0, 0], [1, 1, 1]] },
+      { id: 'L-3-2', tier: 3, matrix: [[0, 0, 1], [0, 0, 1], [1, 1, 1]] },
+      { id: 'L-3-3', tier: 3, matrix: [[1, 1, 1], [1, 0, 0], [1, 0, 0]] },
+      { id: 'L-3-4', tier: 3, matrix: [[1, 1, 1], [0, 0, 1], [0, 0, 1]] }
     ];
 
     /* ==========================================================
@@ -562,9 +562,6 @@
         this.streak = 0;
         this.isGameOver = false;
         this.currentPalette = COLOR_PALETTES[0];
-
-        this.historySnapshot = null;
-        this.reviveCost = 50;
 
         // 드래그 상태
         this.dragSlotIndex = null;
@@ -645,7 +642,6 @@
         this.score = 0;
         this.streak = 0;
         this.isGameOver = false;
-        this.historySnapshot = null;
 
         // 매 게임마다 새로운 블록 컬러 테마 적용!
         this.applyRandomPalette();
@@ -712,47 +708,43 @@
         return false;
       }
 
-      captureSnapshot() {
-        this.historySnapshot = {
-          board: this.board.map(r => [...r]),
-          tray: JSON.parse(JSON.stringify(this.tray)),
-          score: this.score,
-          streak: this.streak
-        };
-      }
-
-      reviveAndContinue() {
-        if (!this.historySnapshot) return;
-
-        this.board = this.historySnapshot.board.map(r => [...r]);
-        this.tray = JSON.parse(JSON.stringify(this.historySnapshot.tray));
-
-        const penalty = Math.min(this.reviveCost, this.historySnapshot.score);
-        this.score = Math.max(0, this.historySnapshot.score - penalty);
-        this.streak = this.historySnapshot.streak;
-        this.isGameOver = false;
-        this.historySnapshot = null;
-
-        const modal = document.getElementById('game-over-modal');
-        modal.classList.add('hidden');
-        modal.classList.remove('opacity-100');
-
-        this.renderBoard();
-        this.renderTray();
-        this.updateScoreView();
-        this.checkAvailableMoves();
-        this.saveSession();
-
-        this.showFloatingScore(`-${penalty} P (부활 차감)`, true);
-        sound.playPlace();
-      }
-
+      /* 난이도 상향 가중치 블록 생성 알고리즘 */
       spawnTray() {
         const newTray = [];
+        const tier1 = BLOCK_SHAPES.filter(s => s.tier === 1);
+        const tier2 = BLOCK_SHAPES.filter(s => s.tier === 2);
+        const tier3 = BLOCK_SHAPES.filter(s => s.tier === 3);
+
+        // 점수에 따라 고난도(Tier 2, 3) 출현 비중 증가
+        let t1Weight = 0.35;
+        let t2Weight = 0.40;
+        let t3Weight = 0.25;
+
+        if (this.score >= 500) {
+          t1Weight = 0.20;
+          t2Weight = 0.45;
+          t3Weight = 0.35;
+        }
+        if (this.score >= 1200) {
+          t1Weight = 0.15;
+          t2Weight = 0.45;
+          t3Weight = 0.40;
+        }
+
         for (let i = 0; i < 3; i++) {
-          const picked = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
+          const rand = Math.random();
+          let pool;
+          if (rand < t1Weight) {
+            pool = tier1;
+          } else if (rand < t1Weight + t2Weight) {
+            pool = tier2;
+          } else {
+            pool = tier3;
+          }
+          const picked = pool[Math.floor(Math.random() * pool.length)];
           newTray.push(picked);
         }
+
         this.tray = newTray;
         this.renderTray();
         this.checkAvailableMoves();
@@ -904,8 +896,6 @@
         const shape = this.tray[slotIndex];
         if (!shape || !this.canPlaceAt(shape.matrix, startX, startY)) return false;
 
-        this.captureSnapshot();
-
         const h = shape.matrix.length;
         const w = shape.matrix[0].length;
         let placedCount = 0;
@@ -989,12 +979,12 @@
         if (totalUnits > 0) {
           this.streak++;
 
-          // 밸런스 조정된 클리어 배점 공식
+          // 콤보 점수 배점 상향 조정
           const baseUnit = 10;
           let comboMultiplier = 1.0;
-          if (totalUnits === 2) comboMultiplier = 1.3;
-          else if (totalUnits === 3) comboMultiplier = 1.7;
-          else if (totalUnits >= 4) comboMultiplier = 2.0 + (totalUnits - 4) * 0.3;
+          if (totalUnits === 2) comboMultiplier = 1.5; // 기존 1.3 -> 1.5 상향
+          else if (totalUnits === 3) comboMultiplier = 2.0; // 기존 1.7 -> 2.0 상향
+          else if (totalUnits >= 4) comboMultiplier = 2.5 + (totalUnits - 4) * 0.4; // 기존 2.0+ -> 2.5+ 상향
 
           let streakMultiplier = 1.0;
           if (this.streak === 2) streakMultiplier = 1.2;
@@ -1110,16 +1100,6 @@
 
         document.getElementById('modal-score').textContent = this.score.toLocaleString();
 
-        const reviveBtn = document.getElementById('btn-revive');
-        const costTag = document.getElementById('revive-cost-tag');
-        if (reviveBtn && this.historySnapshot) {
-          reviveBtn.style.display = 'flex';
-          const penalty = Math.min(this.reviveCost, this.historySnapshot.score);
-          costTag.textContent = penalty > 0 ? `-${penalty} P` : '무료';
-        } else if (reviveBtn) {
-          reviveBtn.style.display = 'none';
-        }
-
         const modal = document.getElementById('game-over-modal');
         modal.classList.remove('hidden');
         setTimeout(() => {
@@ -1153,8 +1133,7 @@
           }
         });
 
-        // 게임 오버 모달 버튼
-        document.getElementById('btn-revive').addEventListener('click', () => this.reviveAndContinue());
+        // 게임 오버 모달 버튼 (새 게임 단독)
         document.getElementById('btn-newgame').addEventListener('click', () => this.startNewGame());
 
         // 터치 & 마우스 드래그 핸들링
