@@ -178,7 +178,7 @@
       gap: 8px;
       align-items: center;
       justify-items: center;
-      height: 110px;
+      height: 115px;
       margin: 0 auto;
     }
 
@@ -191,7 +191,7 @@
       cursor: grab;
       touch-action: none;
       transition: transform 0.15s ease, opacity 0.15s ease;
-      overflow: hidden;
+      overflow: visible;
       padding: 4px;
     }
 
@@ -658,19 +658,38 @@
         const rows = matrix.length;
         const cols = matrix[0].length;
 
-        const container = document.createElement('div');
-        container.className = 'grid pointer-events-none';
-        container.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+        // 슬롯 크기 기반으로 5칸 이상 블록이 잘리거나 찌그러지지 않도록 타일 크기 동적 계산
+        const slotW = slotEl.clientWidth > 0 ? slotEl.clientWidth : 104;
+        const slotH = slotEl.clientHeight > 0 ? slotEl.clientHeight : 115;
         const gap = 1.5;
-        container.style.gap = `${gap}px`;
 
-        const tileSize = 24;
+        // 슬롯 내부 여백 및 그림자 공간 확보 (가로/세로 각각 14px 안전 마진)
+        const availW = Math.max(50, slotW - 14);
+        const availH = Math.max(50, slotH - 14);
+
+        // 가로/세로 모두 슬롯 영역을 초과하지 않는 최대 타일 크기 계산
+        const maxTileW = Math.floor((availW - (cols - 1) * gap) / cols);
+        const maxTileH = Math.floor((availH - (rows - 1) * gap) / rows);
+
+        // 1~3칸 블록은 최대 23px 유지, 4~5칸 이상 대형 블록은 슬롯 내에 100% 온전히 들어가도록 크기 축소
+        const tileSize = Math.max(12, Math.min(23, maxTileW, maxTileH));
+
+        const container = document.createElement('div');
+        container.className = 'grid pointer-events-none flex-shrink-0';
+        container.style.gridTemplateColumns = `repeat(${cols}, ${tileSize}px)`;
+        container.style.gridTemplateRows = `repeat(${rows}, ${tileSize}px)`;
+        container.style.gap = `${gap}px`;
         container.style.width = `${cols * tileSize + (cols - 1) * gap}px`;
         container.style.height = `${rows * tileSize + (rows - 1) * gap}px`;
+
+        const borderRadius = Math.max(2.5, Math.min(4, Math.round(tileSize * 0.16)));
 
         for (let r = 0; r < rows; r++) {
           for (let c = 0; c < cols; c++) {
             const tile = document.createElement('div');
+            tile.style.width = `${tileSize}px`;
+            tile.style.height = `${tileSize}px`;
+            tile.style.borderRadius = `${borderRadius}px`;
             tile.className = matrix[r][c] === 1 ? 'block-tile w-full h-full' : 'w-full h-full opacity-0 pointer-events-none';
             container.appendChild(tile);
           }
@@ -935,6 +954,10 @@
 
         document.getElementById('btn-newgame').addEventListener('click', () => this.startNewGame());
 
+        window.addEventListener('resize', () => {
+          this.renderTray();
+        });
+
         const trayFooter = document.querySelector('footer');
         trayFooter.addEventListener('pointerdown', (e) => this.onDragStart(e));
         window.addEventListener('pointermove', (e) => this.onDragMove(e), { passive: false });
@@ -999,7 +1022,8 @@
         this.clearPreview();
         const grid = document.getElementById('board-grid');
         const rect = grid.getBoundingClientRect();
-        if (clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom) {
+        const margin = 24;
+        if (clientX < rect.left - margin || clientX > rect.right + margin || clientY < rect.top - margin || clientY > rect.bottom + margin) {
           this.hoverCoords = null;
           return;
         }
